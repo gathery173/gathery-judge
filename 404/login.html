@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 Not Found</title>
+    <!-- Link Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #1f2937; /* Set background color */
+            color: white; /* Set text color */
+            font-family: 'Montserrat', sans-serif; /* Set font family */
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            font-size: 4rem; /* Set font size */
+            margin-bottom: 20px; /* Add some bottom margin */
+        }
+
+        p {
+            font-size: 1.5rem; /* Set font size */
+        }
+
+        a {
+            color: #ffc532; /* Set link color */
+        }
+    </style>
+</head>
+<body>
+    <div style="padding: 4pc;">
+        <h1 class="text-4xl font-bold mb-4">404 ¯\_(ツ)_/¯</h1>
+        <p class="text-lg mb-8">У Вас не має доступу до суддівської версії Gathery Voting</p>
+        <br>
+        <div class="text-lg underline" id="exit" style="color: #ffc532;">На головну</div>
+    </div>
+</body>
+</html>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, get, set, ref} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import {
+      getAdditionalUserInfo,
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged,
+      OAuthProvider,
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyARKCyiAbxjZ6PbmTasZeQamQvEyCXKl3c",
+  authDomain: "gathery-judge.firebaseapp.com",
+  databaseURL: "https://gathery-judge-default-rtdb.firebaseio.com",
+  projectId: "gathery-judge",
+  storageBucket: "gathery-judge.appspot.com",
+  messagingSenderId: "292987022887",
+  appId: "1:292987022887:web:be06fd10ebbd94b338a802"
+};
+    
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    const db = getDatabase(app)
+
+    get(ref(db, "cry")).then(sn => {
+       
+       sn.val().forEach(e => {
+        let a = 'primo'
+        let b = `${a.at(0).toUpperCase()}${a.slice(1,)}`
+        console.log(b)
+        e.split("").forEach(y =>{
+        console.log(y)
+       })
+       console.log("")
+       })
+       
+    })
+    document.getElementById("exit").addEventListener("click", function () {
+       
+            window.location.href = "../index.html"
+    })
+</script>
