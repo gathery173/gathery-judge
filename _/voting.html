@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300&display=swap" rel="stylesheet">    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Voting</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <!-- Include Font Awesome CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
@@ -151,12 +151,14 @@
         td:first-child {
             text-align: start;
         }
+
+        
   
 </style>
 </style>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, set, onValue} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, set, onValue, orderByChild} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import {
       getAdditionalUserInfo,
       getAuth,
@@ -236,21 +238,27 @@
             headerCell.textContent = column;
         });
 
-        // Add rows with data
         rows.forEach(row => {
-            let newRow = table.insertRow();
-            let fixedCell = newRow.insertCell();
-            fixedCell.textContent = row; // Content for the fixed column
-            columns.forEach(column => {
-                let cell = newRow.insertCell();
-                // Here you can set the content of each cell based on your data
-                get(ref(db, "cry")).then(sn => {
+    let newRow = table.insertRow();
+    let fixedCell = newRow.insertCell();
+    fixedCell.textContent = row; // Content for the fixed column
 
-                    cell.innerHTML = `<input type='checkbox' id='${column}' class='pp' data="${sn.val()[row]}">`; // Sample content for other cells
-                })
-                
-            });
-        });
+    // Create a radio group for this row
+    let radioGroupName = `row_${row}`;
+
+    columns.forEach(column => {
+        let cell = newRow.insertCell();
+        // Here you can set the content of each cell based on your data
+        get(ref(db, "cry")).then(sn => {
+            // Generate a unique ID for the radio button based on the row and column
+            const radioID = `${column}`;
+            // Add radio button with the same name (radio group) for each cell in the row
+            cell.innerHTML = `<input type='radio' id='${radioID}' name='${radioGroupName}' class='pp' data='${row}'>`; // Sample content for other cells
+        })
+    });
+});
+
+
         })
         
     }).catch(error => {
@@ -265,64 +273,36 @@
                 result[el] = 0
             })
         })
-    
-        function countAndSetCheckedForParts() {
-    // Get all part IDs from the checkboxes
-    const partIDs = Array.from(document.querySelectorAll('.pp:checked')).map(checkbox => checkbox.id);
-    
-    // Iterate through each part ID
-    get(ref(db, 'part')).then(sn => {
-        let users = Array.from(Object.keys(sn.val()));
-        users.forEach(participant => {
-            result[participant] = 0;
-
-            document.querySelectorAll(`[id='${participant}']:checked`).forEach(checkedItem => {
-                console.log(checkedItem);
-                console.log(checkedItem.id);
-                console.log(checkedItem.getAttribute("data"));
-                result[participant] += parseInt(checkedItem.getAttribute("data"));
-                console.log(result);
-                console.log(checkedItem.getAttribute("data"))
-                set(ref(db , `res/${log}`), result)
-            });
-        });
-    });
 
 
-        // Count votes for each participant and store in Firebase
-        const participantCounts = {};
-        partIDs.forEach(partID => {
-            const participantName = $(`#${partID}`).closest('tr').find('td:first-child').text();
-            if (!participantCounts[participantName]) {
-                participantCounts[participantName] = 0;
+        function countResult() {
+    // Initialize an empty object to store the result
+            var result = {};
+            const partIDs = Array.from(document.querySelectorAll('.pp:checked'))
+            partIDs.forEach(el => {
+                console.log(el.getAttribute("data"))
+                result[el.getAttribute("data")] = el.id
+            })
+            const log = localStorage.getItem("login")
+                //set(ref(db, `res/${log}`), result)
+
+            if (confirm("Ви впевнені? Результат не можна буде змінити після натиску кнопки!")) {
+                console.log(result)
+                set(ref(db, "res"), result)
+                $('.pp').prop('disabled', true);
+                document.getElementById("voteButton").disabled = true;
+                set(ref(db, `/ready/${log}/`), "+")
             }
-            participantCounts[participantName]++;
-        });
-
-        // Store the vote counts for each participant in Firebase
-        for (const [participantName, count] of Object.entries(participantCounts)) {
-            set(ref(db, `participantVotes/${participantName}`), count);
         }
-    }
-    
-    // Your existing code to generate the table and checkboxes...
-
-    // Add event listener to checkboxes using jQuery
-
-
-    
-
     // Обработка нажатия кнопки "Проголосовать"
 $('#voteButton').on('click', function() {
     const partIDs = Array.from(document.querySelectorAll('.pp:checked')).map(checkbox => checkbox.id);
 
-    // Вызов функции countAndSetCheckedForParts при нажатии кнопки
-    //countAndSetCheckedForParts();
-    $('.pp').prop('disabled', true);
-    // Установка флага в localStorage о том, что пользователь проголосовал
-    set(ref(db, `/ready/${log}/`), "+")
-    document.getElementById("voteButton").disabled = true;
-    countAndSetCheckedForParts()
+   //!!!!!!!!!! $('.pp').prop('disabled', true);
+
+    //!!!!!!!!!!document.getElementById("voteButton").disabled = true;
+    countResult()
+
 });
 
     const log = localStorage.getItem("login")
@@ -332,7 +312,7 @@ $('#voteButton').on('click', function() {
         
         function dis() {
             if (sn.val() === "+") {
-            $('.pp').prop('disabled', true);
+            //$('.pp').prop('disabled', true);
             document.getElementById("voteButton").disabled = true;
         }
         }
@@ -340,12 +320,70 @@ $('#voteButton').on('click', function() {
     })
     const dbRef = ref(db_, "settings/result");
 
-// Set up a listener for changes in the value at the specified path
-onValue(dbRef, (snapshot) => {
-    // Check if the value is true
-    if (snapshot.val() === true) {
-        // Redirect to result.html
-        window.location.href = 'result.html';
+    const r = ref(db_, "/part")
+
+onValue(r, (sn) => {
+
+        let a = []
+        
+        Array.from(Object.keys(sn.val())).forEach(el => {
+            a.push([el, sn.val()[el]["votes"]])
+        })
+
+        a.sort(function(a, b) {
+            return b[1] - a[1];
+        });
+        console.log(a[0])
+        $(`.pp`).each(function() {
+        if ($(this).attr('id') === leaderId) {
+            $(this).prop("disabled", true);
+        }
+    });
+
     }
-});
+)
+
+setTimeout(()=>{
+    get(r).then(sn => {
+        
+        let a = []
+        
+        Array.from(Object.keys(sn.val())).forEach(el => {
+            a.push([el, sn.val()[el]["votes"]])
+        })
+
+        a.sort(function(a, b) {
+            return b[1] - a[1];
+        });
+        console.log(a[0])
+        //$(`#${a[0][0]}`).prop("disabled" ,true)    
+        $(`.pp`).each(function() {
+        if ($(this).attr('id') === a[0][0]) {
+
+            
+            if ($(this).prop("checked") === true) {
+                console.log("ch")
+                $(this).prop("checked", false)
+                $(this).prop("disabled", true);
+            } else{
+                $(this).prop("disabled", true);
+            }
+        }
+    });
+                        // Display the judge results        
+  
+
+    }
+)
+}, 3000)
+
+// Set up a listener for changes in the value at the specified path
+    onValue(dbRef, (snapshot) => {
+        // Check if the value is true
+        if (snapshot.val() === true) {
+            // Redirect to result.html
+            window.location.href = 'result.html';
+        }
+    });
+
 </script>
