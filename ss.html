@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dropdowns with Unique Options</title>
+</head>
+<body>
+    <div id="dropdownContainer"></div>
+
+    <script>
+        // Sample array of values
+        const values = ['Option 1', 'Option 2', 'Option 3', 'Option 4', 'Option 5'];
+
+        // Function to create a dropdown with unique options
+        function createDropdown(index) {
+            const dropdown = document.createElement('select');
+            dropdown.id = `dropdown_${index}`;
+
+            // Add a default option
+            const defaultOption = document.createElement('option');
+            defaultOption.text = 'Select an option';
+            dropdown.add(defaultOption);
+
+            // Populate dropdown with options
+            values.forEach((value, i) => {
+                if (index === 0 || !document.querySelector(`#dropdown_${index - 1} option[value="${value}"]`)) {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.text = value;
+                    dropdown.add(option);
+                }
+            });
+
+            // Add event listener to remove selected option from other dropdowns
+            dropdown.addEventListener('change', (event) => {
+                const selectedValue = event.target.value;
+                const dropdowns = document.querySelectorAll('select');
+                dropdowns.forEach((dropdown, i) => {
+                    if (i !== index) {
+                        const optionToRemove = dropdown.querySelector(`option[value="${selectedValue}"]`);
+                        if (optionToRemove) {
+                            dropdown.removeChild(optionToRemove);
+                        }
+                    }
+                });
+            });
+
+            return dropdown;
+        }
+
+        // Number of dropdowns to create
+        const numDropdowns = 3;
+
+        // Create and append dropdowns
+        const dropdownContainer = document.getElementById('dropdownContainer');
+        for (let i = 0; i < numDropdowns; i++) {
+            const dropdown = createDropdown(i);
+            dropdownContainer.appendChild(dropdown);
+        }
+    </script>
+</body>
+</html>
